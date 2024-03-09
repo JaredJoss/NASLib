@@ -184,17 +184,27 @@ test_size = 10
 train_sample, train_hashes = sample_arch_dataset(NasBench201SearchSpace(), pred_dataset, pred_api, data_size=train_size, shuffle=True, seed=seed)
 test_sample, _ = sample_arch_dataset(NasBench201SearchSpace(), pred_dataset, pred_api, arch_hashes=train_hashes, data_size=test_size, shuffle=True, seed=seed + 1)
 
-xtrain, ytrain, _ = train_sample
+# xtrain, ytrain, _ = train_sample
 xtest, ytest, _ = test_sample
 
-zcp_name = 'synflow'
+# zc_proxies = ['epe_nas', 'fisher', 'grad_norm', 'grasp', 'jacov', 'l2_norm', 'nwot', 'plain', 'snip', 'synflow', 'zen', 'flops', 'params']
+zc_proxies = ['epe_nas', 'grasp', 'jacov']
+# zcp_name = 'synflow'
 # zc_only = False
 
-# train and query expect different ZCP formats for some reason
-zcp_train = {'zero_cost_scores': [eval_zcp(t_arch, zcp_name, train_loader) for t_arch in tqdm(xtrain)]}
-zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
+spearman_metrics = {}
+for zcp_name in zc_proxies:
+  # train and query expect different ZCP formats for some reason
+  # zcp_train = {'zero_cost_scores': [eval_zcp(t_arch, zcp_name, train_loader) for t_arch in tqdm(xtrain)]}
+  zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
 
-zcp_pred = [s['zero_cost_scores'][zcp_name] for s in zcp_test]
-metrics = evaluate_predictions(ytest, zcp_pred, plot=True,
-                               title=f"NB201 accuracies vs {zcp_name}")
-print("\n", metrics)
+  zcp_pred = [s['zero_cost_scores'][zcp_name] for s in zcp_test]
+  metrics = evaluate_predictions(ytest, zcp_pred, plot=False,
+                                title=f"NB201 accuracies vs {zcp_name}")
+
+  # print("zcp_test:  ", zcp_test)
+  # print("zcp_pred:  ", zcp_pred)
+  # print("\n", metrics)
+  spearman_metrics[zcp_name] = metrics['spearmanr']
+
+print("spearman_metrics:  ", spearman_metrics)

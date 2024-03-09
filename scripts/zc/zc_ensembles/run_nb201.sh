@@ -1,7 +1,7 @@
 #!/bin/bash
 
 searchspace=nasbench201
-datasets=(cifar10 cifar100 ImageNet16-120)
+datasets=(cifar10)
 start_seed=9000
 
 experiment=$1
