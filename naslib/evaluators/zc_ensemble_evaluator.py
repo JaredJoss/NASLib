@@ -111,14 +111,21 @@ class ZCEnsembleEvaluator(object):
 
         xtrain = []
 
-        for m in train_models:
-            xtrain.append(encode_spec(m.arch, encoding_type=EncodingType.ADJACENCY_ONE_HOT,
-                                      ss_type=self.search_space.get_type()))
+        # for m in train_models:
+        #     xtrain.append(encode_spec(m.arch, encoding_type=EncodingType.ADJACENCY_ONE_HOT,
+        #                             ss_type=self.search_space.get_type()))
+
+        # Modify to use ZC scores as features
+        xtrain = [m.zc_scores for m in train_models]
+
 
         ytrain = [m.accuracy for m in train_models]
 
+        # import pdb
+        # pdb.set_trace()
         logger.info('Fitting XGBoost')
         ensemble.fit(xtrain, ytrain)
+
 
         # Get the feature importance
         # self.ensemble[0].feature_importance
@@ -132,13 +139,23 @@ class ZCEnsembleEvaluator(object):
         logger.info('Computing ZC scores')
         self.compute_zc_scores(test_models, zc_predictors, train_loader)
 
-        # Query the ensemble for the predicted accuracy
+                # Original code for preparing x_test with encoded architectures
         x_test = []
-
         logger.info('Preparing test data')
-        for m in test_models:
-            x_test.append(encode_spec(m.arch, encoding_type=EncodingType.ADJACENCY_ONE_HOT,
-                                      ss_type=self.search_space.get_type()))
+        # for m in test_models:
+        #     x_test.append(encode_spec(m.arch, encoding_type=EncodingType.ADJACENCY_ONE_HOT,
+        #                             ss_type=self.search_space.get_type()))
+
+        # Modify to use ZC scores as features
+        x_test = [m.zc_scores for m in test_models]
+
+        # # Query the ensemble for the predicted accuracy
+        # x_test = []
+
+        # logger.info('Preparing test data')
+        # for m in test_models:
+        #     x_test.append(encode_spec(m.arch, encoding_type=EncodingType.ADJACENCY_ONE_HOT,
+        #                               ss_type=self.search_space.get_type()))
 
         test_info = [{'zero_cost_scores': m.zc_scores} for m in test_models]
         preds = np.mean(ensemble.query(x_test, test_info), axis=0)

@@ -26,7 +26,7 @@ utils.set_seed(config.seed)
 evaluator = ZCEnsembleEvaluator(
     n_train=config.train_size,
     n_test=config.test_size,
-    zc_names=config.zc_names,
+    zc_names=config.search.zc_names,
     zc_api=zc_api
 )
 
@@ -37,8 +37,8 @@ train_loader, _, _, _, _ = utils.get_train_val_loaders(config)
 ensemble = Ensemble(num_ensemble=1,
                     ss_type=search_space.get_type(),
                     predictor_type='xgb',
-                    zc=config.zc_ensemble,
-                    zc_only=config.zc_only,
+                    zc=config.search.zc_ensemble,
+                    zc_only=config.search.zc_only,
                     config=config)
 
 evaluator.evaluate(ensemble, train_loader)
