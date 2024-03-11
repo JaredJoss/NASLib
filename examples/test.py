@@ -75,13 +75,13 @@ print(f'Score of model for Zero Cost predictor {zc_proxy}: {score}')
 
 # Instantiate the ZeroCost predictor
 # The Zero Cost predictors can be any of the following:
-zc_proxies = ['epe_nas', 'fisher', 'grad_norm', 'grasp', 'jacov', 'l2_norm', 'nwot', 'plain', 'snip', 'synflow', 'zen', 'flops', 'params']
+# zc_proxies = ['epe_nas', 'fisher', 'grad_norm', 'grasp', 'jacov', 'l2_norm', 'nwot', 'plain', 'snip', 'synflow', 'zen', 'flops', 'params']
 
-print('Scores of the model: ')
-for zc_proxy in zc_proxies:
-    zc_predictor = ZeroCost(method_type=zc_proxy)
-    score = zc_predictor.query(graph=graph, dataloader=train_loader)
-    print(f'{zc_proxy}: {score:3f}')
+# print('Scores of the model: ')
+# for zc_proxy in zc_proxies:
+#     zc_predictor = ZeroCost(method_type=zc_proxy)
+#     score = zc_predictor.query(graph=graph, dataloader=train_loader)
+#     print(f'{zc_proxy}: {score:3f}')
 
 
 ## Zero cost proxies for performance prediction
@@ -208,3 +208,26 @@ for zcp_name in zc_proxies:
   spearman_metrics[zcp_name] = metrics['spearmanr']
 
 print("spearman_metrics:  ", spearman_metrics)
+
+
+# # ensemble
+# weights = {
+#    'epe_nas': 40, 
+#    'grasp': 20, 
+#    'jacov': 40
+# }
+
+# zcp_preds = {}
+# for zcp_name in zc_proxies:
+#   zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
+#   zcp_pred = [s['zero_cost_scores'][zcp_name] * weights[zcp_name] for s in zcp_test]
+#   zcp_preds[zcp_name] = zcp_pred
+
+# ensemble_preds = []
+# for i in range(len(zcp_preds['epe_nas'])):
+#   ensemble_preds[i] = sum([zcp_preds[zcp_name][i] for zcp_name in zc_proxies])/sum(weights.values())
+
+# ens_metrics = evaluate_predictions(ytest, ensemble_preds, plot=False,
+#                                 title=f"NB201 accuracies vs {zcp_name}")
+
+# print("ens_metrics:  ", ens_metrics)
