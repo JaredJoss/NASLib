@@ -260,7 +260,7 @@ def _data_transforms_cifar100(args):
             transforms.Normalize(CIFAR_MEAN, CIFAR_STD),
         ]
     )
-    if args.cutout:
+    if hasattr(args, 'cutout') and args.cutout:
         train_transform.transforms.append(
             Cutout(args.cutout_length, args.cutout_prob))
 
