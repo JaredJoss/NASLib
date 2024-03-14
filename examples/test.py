@@ -225,10 +225,9 @@ for zcp_name in zc_proxies:
   zcp_preds[zcp_name] = zcp_pred
 
 
-
 ensemble_preds = []
 for i in range(train_size):
-  ensemble_preds.append( sum([zcp_preds[zcp_name][i] * best_params[zcp_name] for zcp_name in zc_proxies])) 
+  ensemble_preds.append(sum([zcp_preds[zcp_name][i] * best_params[zcp_name] for zcp_name in zc_proxies])) 
 
 print(ensemble_preds)
 
