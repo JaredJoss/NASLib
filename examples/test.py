@@ -199,6 +199,7 @@ for zcp_name in zc_proxies:
   zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
 
   zcp_pred = [s['zero_cost_scores'][zcp_name] for s in zcp_test]
+
   metrics = evaluate_predictions(ytest, zcp_pred, plot=False,
                                 title=f"NB201 accuracies vs {zcp_name}")
 
@@ -210,24 +211,28 @@ for zcp_name in zc_proxies:
 print("spearman_metrics:  ", spearman_metrics)
 
 
-# # ensemble
-# weights = {
-#    'epe_nas': 40, 
-#    'grasp': 20, 
-#    'jacov': 40
-# }
+## ensemble
+best_params = {
+   'epe_nas': 40, 
+   'grasp': 20,
+   'jacov': 40
+}
 
-# zcp_preds = {}
-# for zcp_name in zc_proxies:
-#   zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
-#   zcp_pred = [s['zero_cost_scores'][zcp_name] * weights[zcp_name] for s in zcp_test]
-#   zcp_preds[zcp_name] = zcp_pred
+zcp_preds = {}
+for zcp_name in zc_proxies:
+  zcp_test = [{'zero_cost_scores': eval_zcp(t_arch, zcp_name, train_loader)} for t_arch in tqdm(xtest)]
+  zcp_pred = [s['zero_cost_scores'][zcp_name] for s in zcp_test]
+  zcp_preds[zcp_name] = zcp_pred
 
-# ensemble_preds = []
-# for i in range(len(zcp_preds['epe_nas'])):
-#   ensemble_preds[i] = sum([zcp_preds[zcp_name][i] for zcp_name in zc_proxies])/sum(weights.values())
 
-# ens_metrics = evaluate_predictions(ytest, ensemble_preds, plot=False,
-#                                 title=f"NB201 accuracies vs {zcp_name}")
 
-# print("ens_metrics:  ", ens_metrics)
+ensemble_preds = []
+for i in range(train_size):
+  ensemble_preds.append( sum([zcp_preds[zcp_name][i] * best_params[zcp_name] for zcp_name in zc_proxies])) 
+
+print(ensemble_preds)
+
+ens_metrics = evaluate_predictions(ytest, ensemble_preds, plot=False,
+                                title=f"NB201 accuracies vs {zcp_name}")
+
+print("ens_metrics:  ", ens_metrics)
