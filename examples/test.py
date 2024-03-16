@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from naslib.utils import compute_scores  # computes more metrics than just correlation
 from scipy.stats import kendalltau, spearmanr
 
+from naslib.predictors import XGBoost
 
 graph = NasBench201SearchSpace(n_classes=10)
 
@@ -184,7 +185,7 @@ test_size = 10
 train_sample, train_hashes = sample_arch_dataset(NasBench201SearchSpace(), pred_dataset, pred_api, data_size=train_size, shuffle=True, seed=seed)
 test_sample, _ = sample_arch_dataset(NasBench201SearchSpace(), pred_dataset, pred_api, arch_hashes=train_hashes, data_size=test_size, shuffle=True, seed=seed + 1)
 
-# xtrain, ytrain, _ = train_sample
+xtrain, ytrain, _ = train_sample
 xtest, ytest, _ = test_sample
 
 # zc_proxies = ['epe_nas', 'fisher', 'grad_norm', 'grasp', 'jacov', 'l2_norm', 'nwot', 'plain', 'snip', 'synflow', 'zen', 'flops', 'params']
@@ -193,6 +194,8 @@ zc_proxies = ['epe_nas', 'grasp', 'jacov']
 # zc_only = False
 
 spearman_metrics = {}
+xgboost_metrics = {}
+
 for zcp_name in zc_proxies:
   # train and query expect different ZCP formats for some reason
   # zcp_train = {'zero_cost_scores': [eval_zcp(t_arch, zcp_name, train_loader) for t_arch in tqdm(xtrain)]}
@@ -208,7 +211,25 @@ for zcp_name in zc_proxies:
   # print("\n", metrics)
   spearman_metrics[zcp_name] = metrics['spearmanr']
 
+  ### XGBoost (NOT working) ###
+  zcp_train = {'zero_cost_scores': [eval_zcp(t_arch, zcp_name, train_loader) for t_arch in tqdm(xtrain)]}
+  zc_only = False
+  zcp_model = XGBoost(zc=True, zc_only=zc_only)
+  zcp_model.set_pre_computations(xtrain_zc_info=zcp_train)
+
+  # even when using zc_only, you must pass a list to both fit and query (it can be empty)
+  enc_type = EncodingType.ADJACENCY_ONE_HOT
+  enc_train = encode_archs(NasBench201SearchSpace(), xtrain, encoding=enc_type)
+  enc_test = encode_archs(NasBench201SearchSpace(), xtest, encoding=enc_type)
+  zcp_model.fit(enc_train, ytrain)
+  res = zcp_model.query(enc_test, info=zcp_test)
+
+  xgb_metrics = evaluate_predictions(ytest, res)
+  xgboost_metrics[zcp_name] = xgb_metrics
+  ### ###
+
 print("spearman_metrics:  ", spearman_metrics)
+print("xgboost_metrics:  ", xgboost_metrics)
 
 
 ## ensemble
@@ -224,7 +245,6 @@ for zcp_name in zc_proxies:
   zcp_pred = [s['zero_cost_scores'][zcp_name] for s in zcp_test]
   zcp_preds[zcp_name] = zcp_pred
 
-
 ensemble_preds = []
 for i in range(train_size):
   ensemble_preds.append(sum([zcp_preds[zcp_name][i] * best_params[zcp_name] for zcp_name in zc_proxies])) 
@@ -235,3 +255,4 @@ ens_metrics = evaluate_predictions(ytest, ensemble_preds, plot=False,
                                 title=f"NB201 accuracies vs {zcp_name}")
 
 print("ens_metrics:  ", ens_metrics)
+
