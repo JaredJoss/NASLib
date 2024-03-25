@@ -285,7 +285,7 @@ def _data_transforms_ImageNet_16_120(args):
             transforms.Normalize(IMAGENET16_MEAN, IMAGENET16_STD),
         ]
     )
-    if args.cutout:
+    if hasattr(args, 'cutout') and args.cutout:
         train_transform.transforms.append(
             Cutout(args.cutout_length, args.cutout_prob))
 
