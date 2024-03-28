@@ -2,6 +2,7 @@ import os
 import pickle
 import json
 from pathlib import Path
+import subprocess
 
 from .asr import from_folder
 
@@ -20,10 +21,13 @@ def get_project_root() -> Path:
 def get_zc_benchmark_api(search_space, dataset):
     datafile_path = os.path.join(
         get_project_root(), "data", f"zc_{search_space}.json")
-    with open(datafile_path) as f:
-        data = json.load(f)
+    try:
+        with open(datafile_path) as f:
+            data = json.load(f)
+            return data[dataset]
+    except FileNotFoundError:
+        raise ValueError("Please download: https://drive.google.com/uc?id=1k2EUtVJ4JqoJCnuyJEVgZs6vAmbg6XVB and put it in naslib/data directory")
 
-    return data[dataset]
 
 def load_sampled_architectures(search_space, postfix=''):
     datafile_path = os.path.join(get_project_root(), "data", "archs", f"archs_{search_space}{postfix}.json")
