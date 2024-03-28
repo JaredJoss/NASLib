@@ -18,9 +18,8 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent
 
 def get_zc_benchmark_api(search_space, dataset):
-
     datafile_path = os.path.join(
-        get_project_root(), "data", f"zc_{search_space}.json")
+        get_project_root(), "../../machop/chop/actions/search/search_space/zero_cost_proxy/data", f"zc_{search_space}.json")
     with open(datafile_path) as f:
         data = json.load(f)
 
