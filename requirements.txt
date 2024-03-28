@@ -14,6 +14,7 @@ pybnn==0.0.5
 grakel
 pyro-ppl
 scipy
+pythran
 
 # additional from setup.py prev
 tqdm
