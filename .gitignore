@@ -4,7 +4,7 @@
 *.out
 *.err
 *.log
-*.json
+# *.json
 
 # Model files
 *.pth
